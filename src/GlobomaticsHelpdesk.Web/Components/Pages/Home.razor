@@ -1,0 +1,203 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+@inject IJSRuntime JS
+@inject MarkdownRenderer MarkdownRenderer
+
+<PageTitle>Globomatics Helpdesk Chat</PageTitle>
+
+<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+        @if (_messages.Count == 0)
+        {
+            <div class="chat-empty">
+                <h4>Globomatics IT Helpdesk</h4>
+                <p class="text-muted">Ask a question to get started.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var msg in _messages)
+            {
+                <div class="chat-bubble @(msg.IsUser ? "chat-bubble-user" : "chat-bubble-assistant")">
+                    <div class="chat-bubble-role">@(msg.IsUser ? "You" : "Assistant")</div>
+                    <div class="chat-bubble-text">
+                        @if (!msg.IsUser && _busy && msg == _messages[^1])
+                        {
+                            @* Live stream target - JS appends tokens directly to bypass
+                               Blazor's render batching for a smooth char-by-char feel. *@
+                            @if (string.IsNullOrEmpty(msg.Text))
+                            {
+                                <em class="text-muted">Thinking…</em>
+                            }
+                            <span id="streaming-target"></span>
+                        }
+                        else
+                        {
+                            @if (!msg.IsUser && !string.IsNullOrEmpty(msg.Html))
+                            {
+                                <div class="chat-markdown">@((MarkupString)msg.Html)</div>
+                            }
+                            else
+                            {
+                                @msg.Text
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="chat-input-area">
+        @if (_error is not null)
+        {
+            <div class="alert alert-danger py-1 px-2 mb-2 small">@_error</div>
+        }
+        <form @onsubmit="SendAsync" class="chat-input-form">
+            <textarea id="chatInput" rows="1" placeholder="Ask a question…"
+                      @bind="_prompt" @bind:event="oninput" @bind:after="AutoResize"
+                      @onkeydown="HandleKeyDown"
+                      disabled="@_busy"></textarea>
+            <button type="submit" class="chat-send-btn"
+                    disabled="@(_busy || string.IsNullOrWhiteSpace(_prompt))"
+                    title="Send message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                     fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</div>
+
+@code {
+    private readonly List<ChatMsg> _messages = [];
+    private string _prompt = string.Empty;
+    private bool _busy;
+    private string? _error;
+    private IJSObjectReference? _streamingModule;
+
+    private record ChatMsg(bool IsUser, string Text, string? Html = null);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _streamingModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./js/streaming.js");
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e is { Key: "Enter", ShiftKey: false })
+        {
+            await SendAsync();
+        }
+    }
+
+    private async Task AutoResize()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", """
+                var el = document.getElementById('chatInput');
+                if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 200) + 'px'; }
+                """);
+        }
+        catch { }
+    }
+
+    private async Task SendAsync()
+    {
+        var prompt = _prompt.Trim();
+        if (string.IsNullOrEmpty(prompt) || _busy) return;
+
+        _error = null;
+        _messages.Add(new ChatMsg(true, prompt));
+        _prompt = string.Empty;
+        _busy = true;
+        // Add an empty assistant bubble that hosts the JS stream target.
+        _messages.Add(new ChatMsg(false, string.Empty));
+        StateHasChanged();
+        await ResetTextareaHeight();
+        await ScrollToBottom();
+
+        var accumulated = new System.Text.StringBuilder();
+
+        try
+        {
+            var jsonBody = System.Text.Json.JsonSerializer.Serialize(new { prompt });
+            var firstToken = true;
+
+            await foreach (var token in Api.StreamAsync(
+                "/api/chat/stream", State.CurrentKey, jsonBody))
+            {
+                if (firstToken && _streamingModule is not null)
+                {
+                    await _streamingModule.InvokeVoidAsync("beginStream", "streaming-target");
+                    firstToken = false;
+                }
+
+                accumulated.Append(token);
+
+                // Push the token directly to the DOM — bypasses Blazor's render
+                // diff so each token shows up immediately instead of in batches.
+                if (_streamingModule is not null)
+                {
+                    await _streamingModule.InvokeVoidAsync("appendToken", "streaming-target", token);
+                }
+            }
+
+            var finalText = accumulated.ToString();
+            if (string.IsNullOrEmpty(finalText))
+            {
+                finalText = "(empty reply)";
+            }
+
+            _messages[^1] = _messages[^1] with
+            {
+                Text = finalText,
+                Html = MarkdownRenderer.ToSafeHtml(finalText)
+            };
+        }
+        catch (HttpRequestException ex)
+        {
+            _messages.RemoveAt(_messages.Count - 1);
+            _error = $"Error: {ex.StatusCode} — {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            _messages.RemoveAt(_messages.Count - 1);
+            _error = $"Error: {ex.Message}";
+        }
+
+        _busy = false;
+        StateHasChanged();
+        await ScrollToBottom();
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await Task.Yield();
+        try
+        {
+            await JS.InvokeVoidAsync("eval",
+                "document.getElementById('chatMessages')?.scrollTo(0, document.getElementById('chatMessages').scrollHeight)");
+        }
+        catch { }
+    }
+
+    private async Task ResetTextareaHeight()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval",
+                "var el = document.getElementById('chatInput'); if (el) el.style.height = 'auto';");
+        }
+        catch { }
+    }
+
+}
