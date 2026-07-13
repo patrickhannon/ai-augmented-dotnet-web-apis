@@ -1,0 +1,31 @@
+@host = http://localhost:5119
+@apiKey = gh_agent_key_0001
+
+### Chat (non-streaming) — Verify chat still works after vector store changes
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}
+
+### Chat (streaming SSE) — Verify streaming still works
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "How do I reset my password at Globomatics?"
+}
+
+### Chat — Show the model has NO knowledge base access yet
+# The model will give generic advice, not Globomatics-specific procedures.
+# After Demo 3, this same question will return grounded answers.
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "What is the process for requesting a new laptop?"
+}

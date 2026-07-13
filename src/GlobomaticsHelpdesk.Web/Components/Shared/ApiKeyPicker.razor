@@ -1,0 +1,78 @@
+@implements IDisposable
+@inject ApiKeyState State
+@inject IJSRuntime JS
+
+<div class="api-key-picker">
+    <label for="apiKeySelect" class="form-label me-2 mb-0">API key:</label>
+    <select id="apiKeySelect" class="form-select form-select-sm d-inline-block w-auto"
+            @bind="SelectedKey" @bind:event="onchange">
+        @foreach (var opt in ApiKeyState.Options)
+        {
+            <option value="@opt.Key">@opt.Label</option>
+        }
+    </select>
+    <span class="api-key-current ms-2 text-muted small">
+        <code>@(string.IsNullOrEmpty(State.CurrentKey) ? "(no header)" : State.CurrentKey)</code>
+    </span>
+</div>
+
+@code {
+    private const string StorageKey = "helpdesk-api-key";
+
+    private string SelectedKey
+    {
+        get => State.Selected.Key;
+        set
+        {
+            var match = ApiKeyState.Options.FirstOrDefault(o => o.Key == value)
+                        ?? ApiKeyState.Options[^1];
+            State.Selected = match;
+            _ = PersistAsync(match.Key);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        State.OnChanged += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var stored = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+            if (stored is null) return;
+
+            var match = ApiKeyState.Options.FirstOrDefault(o => o.Key == stored);
+            if (match is not null && match != State.Selected)
+            {
+                State.Selected = match;
+            }
+        }
+        catch
+        {
+            // localStorage may be unavailable during prerender; safe to ignore.
+        }
+    }
+
+    private async Task PersistAsync(string key)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, key);
+        }
+        catch
+        {
+            // Ignore storage failures; in-memory state is still updated.
+        }
+    }
+
+    public void Dispose()
+    {
+        State.OnChanged -= StateHasChanged;
+    }
+}
+
+
