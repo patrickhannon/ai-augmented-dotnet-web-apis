@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GlobomaticsHelpdesk.Api/GlobomaticsHelpdesk.Api.csproj" />
+    <Project Path="src/GlobomaticsHelpdesk.AppHost/GlobomaticsHelpdesk.AppHost.csproj" />
+    <Project Path="src/GlobomaticsHelpdesk.ServiceDefaults/GlobomaticsHelpdesk.ServiceDefaults.csproj" />
+    <Project Path="src/GlobomaticsHelpdesk.Web/GlobomaticsHelpdesk.Web.csproj" />
+  </Folder>
+</Solution>

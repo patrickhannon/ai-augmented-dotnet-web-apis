@@ -1,0 +1,20 @@
+@host = http://localhost:5119
+@apiKey = gh_agent_key_0001
+
+### Chat (non-streaming) — Clip 3
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}
+
+### Chat (streaming SSE) — Clip 5
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}

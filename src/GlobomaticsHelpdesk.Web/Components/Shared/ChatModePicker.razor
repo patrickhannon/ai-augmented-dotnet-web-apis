@@ -1,0 +1,35 @@
+@implements IDisposable
+@inject ChatModeState ModeState
+
+<div class="api-key-picker">
+    <label for="chatModeSelect" class="form-label me-2 mb-0">Mode:</label>
+    <select id="chatModeSelect" class="form-select form-select-sm d-inline-block w-auto"
+            @bind="SelectedMode" @bind:event="onchange">
+        <option value="Streaming">Streaming</option>
+        <option value="NonStreaming">Non-streaming</option>
+    </select>
+</div>
+
+@code {
+    private string SelectedMode
+    {
+        get => ModeState.Mode.ToString();
+        set
+        {
+            if (Enum.TryParse<ChatMode>(value, out var parsed))
+            {
+                ModeState.Mode = parsed;
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ModeState.OnChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ModeState.OnChanged -= StateHasChanged;
+    }
+}
