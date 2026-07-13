@@ -1,0 +1,44 @@
+@host = http://localhost:5119
+@apiKey = gh_agent_key_0001
+
+### Chat (non-streaming) — Grounded response with RAG
+# Before Demo 3, this same prompt returned generic VPN troubleshooting advice.
+# Now the response references specific Globomatics procedures (GloboConnect, SSO, MFA, etc.)
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}
+
+### Chat (streaming SSE) — Grounded streaming response
+# The streaming endpoint now also retrieves knowledge base articles before generating.
+# Tokens still arrive incrementally, but the content references real Globomatics procedures.
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}
+
+### Chat — Another grounded example
+# Without RAG, the model would give generic advice about laptop requests.
+# With RAG, it references the Globomatics equipment request process.
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "What is the process for requesting a new laptop?"
+}
+
+### Chat (streaming) — Email sync issue
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "I can't get my email to sync on my phone. What should I try?"
+}
