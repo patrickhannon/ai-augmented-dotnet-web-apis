@@ -1,0 +1,37 @@
+@implements IDisposable
+@inject ModeState Mode
+
+<div class="mode-picker">
+    <label for="modeSelect" class="form-label me-2 mb-0">Mode:</label>
+    <select id="modeSelect" class="form-select form-select-sm d-inline-block w-auto"
+            @bind="SelectedMode" @bind:event="onchange">
+        @foreach (var opt in ModeState.Options)
+        {
+            <option value="@opt.Mode">@opt.Label</option>
+        }
+    </select>
+</div>
+
+@code {
+    private string SelectedMode
+    {
+        get => Mode.Current.ToString();
+        set
+        {
+            if (Enum.TryParse<AppMode>(value, out var parsed))
+            {
+                Mode.Current = parsed;
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Mode.OnChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Mode.OnChanged -= StateHasChanged;
+    }
+}

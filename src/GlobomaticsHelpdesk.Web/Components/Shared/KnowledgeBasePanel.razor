@@ -1,0 +1,87 @@
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+
+<div class="kb-panel">
+    <h4>Knowledge Base Articles</h4>
+    <p class="text-muted">All articles currently stored in the database.</p>
+
+    @if (_loading)
+    {
+        <div class="d-flex align-items-center gap-2 mt-3">
+            <span class="spinner-border spinner-border-sm"></span>
+            <span>Loading articles…</span>
+        </div>
+    }
+    else if (_error is not null)
+    {
+        <div class="alert alert-danger mt-2 py-1 px-2 small">@_error</div>
+    }
+    else if (_articles is not null)
+    {
+        <div class="kb-article-count text-muted small mb-2">@_articles.Count article(s)</div>
+        <div class="kb-article-list">
+            @foreach (var article in _articles)
+            {
+                <div class="kb-article-card">
+                    <div class="kb-article-title">@article.Title</div>
+                    <div class="kb-article-meta">
+                        @if (article.Tags.Count > 0)
+                        {
+                            @foreach (var tag in article.Tags)
+                            {
+                                <span class="badge bg-secondary me-1">@tag</span>
+                            }
+                        }
+                        <span class="text-muted small ms-2">Updated: @article.UpdatedAt.ToString("yyyy-MM-dd")</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private string? _error;
+    private List<KnowledgeArticle>? _articles;
+
+    private record KnowledgeArticle(Guid Id, string Title, List<string> Tags, DateTimeOffset UpdatedAt);
+    private record PagedResponse(List<KnowledgeArticle> Items, int Page, int PageSize, int TotalCount);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadArticlesAsync();
+    }
+
+    private async Task LoadArticlesAsync()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+
+        try
+        {
+            var response = await Api.SendAsync(HttpMethod.Get, "/api/knowledge?pageSize=200", State.CurrentKey, ct: default);
+
+            if (!response.IsSuccess)
+            {
+                _error = $"Error {response.StatusCode}: {response.ReasonPhrase}";
+            }
+            else
+            {
+                var paged = System.Text.Json.JsonSerializer.Deserialize<PagedResponse>(
+                    response.Body,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                _articles = paged?.Items ?? [];
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+}

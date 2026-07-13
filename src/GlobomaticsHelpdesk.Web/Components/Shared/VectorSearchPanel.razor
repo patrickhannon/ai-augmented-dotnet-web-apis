@@ -1,0 +1,112 @@
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+
+<div class="search-panel">
+    <h4>Vector Search Test</h4>
+    <p class="text-muted">Enter a query to test semantic search against the knowledge base.</p>
+
+    <div class="search-input-row">
+        <input type="text" class="form-control" placeholder="e.g. my VPN keeps timing out"
+               @bind="_query" @bind:event="oninput"
+               @onkeydown="HandleKeyDown"
+               disabled="@_loading" />
+        <button class="btn btn-primary" @onclick="SearchAsync"
+                disabled="@(_loading || string.IsNullOrWhiteSpace(_query))">
+            @if (_loading)
+            {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Search
+        </button>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger mt-2 py-1 px-2 small">@_error</div>
+    }
+
+    @if (_results is not null)
+    {
+        <div class="search-results mt-3">
+            @if (_results.Count == 0)
+            {
+                <p class="text-muted">No results found.</p>
+            }
+            else
+            {
+                <div class="results-header text-muted small mb-2">
+                    @_results.Count result(s) for "<strong>@_lastQuery</strong>"
+                </div>
+                @for (var i = 0; i < _results.Count; i++)
+                {
+                    var result = _results[i];
+                    <div class="result-card">
+                        <div class="result-card-header">
+                            <span class="result-rank">#@(i + 1)</span>
+                            <span class="result-title">@result.Title</span>
+                            <span class="result-score badge bg-info text-dark">
+                                Score: @(result.Score?.ToString("F4") ?? "N/A")
+                            </span>
+                        </div>
+                        <div class="result-snippet">@result.BodySnippet</div>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string _query = string.Empty;
+    private string _lastQuery = string.Empty;
+    private bool _loading;
+    private string? _error;
+    private List<VectorSearchResult>? _results;
+
+    private record VectorSearchResult(string Title, string BodySnippet, double? Score);
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchAsync();
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        var query = _query.Trim();
+        if (string.IsNullOrEmpty(query) || _loading) return;
+
+        _loading = true;
+        _error = null;
+        _results = null;
+        _lastQuery = query;
+        StateHasChanged();
+
+        try
+        {
+            var path = $"/api/knowledge/search-test?q={Uri.EscapeDataString(query)}";
+            var response = await Api.SendAsync(HttpMethod.Get, path, State.CurrentKey, ct: default);
+
+            if (!response.IsSuccess)
+            {
+                _error = $"Error {response.StatusCode}: {response.ReasonPhrase}";
+            }
+            else
+            {
+                _results = System.Text.Json.JsonSerializer.Deserialize<List<VectorSearchResult>>(
+                    response.Body,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                    ?? [];
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+}
