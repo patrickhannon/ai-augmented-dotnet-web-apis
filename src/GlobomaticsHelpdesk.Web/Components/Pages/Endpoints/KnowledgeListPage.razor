@@ -1,0 +1,60 @@
+@page "/knowledge/list"
+@rendermode InteractiveServer
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+
+<EndpointPage Title="Search knowledge base"
+              Method="GET" Path="/api/knowledge"
+              Description="Keyword search across knowledge base articles (title, body, tags).">
+
+    <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Keyword (q)</label>
+            <input class="form-control" @bind="_q" placeholder="vpn, mfa, printer..." />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Page</label>
+            <input type="number" class="form-control" @bind="_page" min="1" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Page size</label>
+            <input type="number" class="form-control" @bind="_pageSize" min="1" max="200" />
+        </div>
+        <div class="col-md-2 text-end">
+            <button class="btn btn-primary w-100" @onclick="Send" disabled="@_busy">
+                @(_busy ? "..." : "Send")
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <ResponseViewer Response="_response" />
+    </div>
+</EndpointPage>
+
+@code {
+    private string? _q;
+    private int _page = 1;
+    private int _pageSize = 25;
+    private ApiResponse? _response;
+    private bool _busy;
+
+    private async Task Send()
+    {
+        _busy = true;
+        try
+        {
+            var qs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(_q)) qs.Add($"q={Uri.EscapeDataString(_q)}");
+            qs.Add($"page={_page}");
+            qs.Add($"pageSize={_pageSize}");
+
+            var url = "/api/knowledge?" + string.Join('&', qs);
+            _response = await Api.SendAsync(HttpMethod.Get, url, State.CurrentKey);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

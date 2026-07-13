@@ -1,0 +1,45 @@
+﻿@page "/"
+
+<PageTitle>Globomatics Helpdesk API Explorer</PageTitle>
+
+<h1 class="h3 mb-3">Globomatics Helpdesk API Explorer</h1>
+
+<p class="lead">
+    A simple Blazor front end for invoking every endpoint of the Globomatics Helpdesk API,
+    orchestrated locally by .NET Aspire.
+</p>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">How to use</h5>
+                <ol class="mb-0">
+                    <li>Pick an API key from the top-right dropdown — it is sent as the
+                        <code>X-Api-Key</code> header on every request.</li>
+                    <li>Click an endpoint in the left navigation.</li>
+                    <li>Fill in the form (if any) and press <strong>Send</strong>.</li>
+                    <li>Inspect the status code, response body (pretty JSON), and headers below.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Seeded API keys</h5>
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr><th>Role</th><th>Identity</th><th>Key</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>admin</td><td>Avery Admin</td><td><code>gh_admin_key_0001</code></td></tr>
+                        <tr><td>agent</td><td>Riley Reynolds</td><td><code>gh_agent_key_0001</code></td></tr>
+                        <tr><td>read-only</td><td>Quinn Viewer</td><td><code>gh_readonly_key_0001</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

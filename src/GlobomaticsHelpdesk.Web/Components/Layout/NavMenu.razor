@@ -1,0 +1,69 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Helpdesk API</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Overview
+            </NavLink>
+        </div>
+
+        <div class="nav-section px-3 mt-3 text-uppercase text-muted small">Health</div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="health">
+                <span class="badge bg-secondary method-badge">GET</span> /health
+            </NavLink>
+        </div>
+
+        <div class="nav-section px-3 mt-3 text-uppercase text-muted small">Tickets</div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tickets/list">
+                <span class="badge bg-secondary method-badge">GET</span> /api/tickets
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tickets/get">
+                <span class="badge bg-secondary method-badge">GET</span> /api/tickets/{id}
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tickets/create">
+                <span class="badge bg-success method-badge">POST</span> /api/tickets
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tickets/status">
+                <span class="badge bg-warning method-badge">PATCH</span> /api/tickets/{id}/status
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tickets/assignment">
+                <span class="badge bg-warning method-badge">PATCH</span> /api/tickets/{id}/assignment
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tickets/comments">
+                <span class="badge bg-success method-badge">POST</span> /api/tickets/{id}/comments
+            </NavLink>
+        </div>
+
+        <div class="nav-section px-3 mt-3 text-uppercase text-muted small">Knowledge</div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="knowledge/list">
+                <span class="badge bg-secondary method-badge">GET</span> /api/knowledge
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="knowledge/get">
+                <span class="badge bg-secondary method-badge">GET</span> /api/knowledge/{id}
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

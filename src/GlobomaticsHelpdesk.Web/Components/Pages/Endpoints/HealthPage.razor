@@ -1,0 +1,33 @@
+@page "/health"
+@rendermode InteractiveServer
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+
+<EndpointPage Title="Health check" Method="GET" Path="/health"
+              Description="Reports liveness of the API. No authentication required.">
+    <button class="btn btn-primary" @onclick="Send" disabled="@_busy">
+        @(_busy ? "Sending..." : "Send")
+    </button>
+
+    <div class="mt-3">
+        <ResponseViewer Response="_response" />
+    </div>
+</EndpointPage>
+
+@code {
+    private ApiResponse? _response;
+    private bool _busy;
+
+    private async Task Send()
+    {
+        _busy = true;
+        try
+        {
+            _response = await Api.SendAsync(HttpMethod.Get, "/health", State.CurrentKey);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -1,0 +1,73 @@
+@if (Response is not null)
+{
+    var statusClass = Response.IsSuccess
+        ? "bg-success-subtle text-success-emphasis"
+        : Response.StatusCode == 0 ? "bg-danger-subtle text-danger-emphasis"
+        : "bg-warning-subtle text-warning-emphasis";
+
+    <div class="response-panel">
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge @statusClass fs-6">
+                @(Response.StatusCode == 0 ? "ERROR" : Response.StatusCode.ToString())
+                @if (!string.IsNullOrEmpty(Response.ReasonPhrase)) { <text> @Response.ReasonPhrase</text> }
+            </span>
+            <span class="text-muted small">@Response.Elapsed.TotalMilliseconds.ToString("0") ms</span>
+            @if (!string.IsNullOrEmpty(Response.ContentType))
+            {
+                <span class="text-muted small">· @Response.ContentType</span>
+            }
+        </div>
+
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link @(_tab == "body" ? "active" : "")"
+                        type="button" @onclick='() => _tab = "body"'>Body</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(_tab == "headers" ? "active" : "")"
+                        type="button" @onclick='() => _tab = "headers"'>Headers (@Response.Headers.Count)</button>
+            </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 rounded-bottom p-3 bg-body-tertiary">
+            @if (_tab == "body")
+            {
+                if (string.IsNullOrEmpty(Response.Body))
+                {
+                    <em class="text-muted">(empty body)</em>
+                }
+                else
+                {
+                    <pre class="response-body mb-0"><code>@Response.Body</code></pre>
+                }
+            }
+            else
+            {
+                @if (Response.Headers.Count == 0)
+                {
+                    <em class="text-muted">(no headers)</em>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            @foreach (var kv in Response.Headers.OrderBy(k => k.Key))
+                            {
+                                <tr>
+                                    <th class="text-nowrap" style="width: 1%">@kv.Key</th>
+                                    <td><code>@kv.Value</code></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ApiResponse? Response { get; set; }
+
+    private string _tab = "body";
+}
