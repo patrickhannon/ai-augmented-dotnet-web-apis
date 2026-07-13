@@ -1,0 +1,33 @@
+@host = http://localhost:5119
+@apiKey = gh_agent_key_0001
+
+# =====================================================
+# TRIAGE ENDPOINT — Agentic Structured Output
+# =====================================================
+
+### Triage — Realistic VPN issue
+# The model acts as a triage agent: it decides which tools to call (KB search,
+# ticket lookup), in what order, then produces a structured TriageResult JSON
+# response with priority, category, summary, and recommended actions.
+
+POST {{host}}/api/triage
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "message": "My VPN connection drops every 15 minutes and I can't access the shared drive. This started after the latest Windows update.",
+  "customerId": "user-0001"
+}
+
+###
+
+### Triage — Hardware issue
+POST {{host}}/api/triage
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "message": "My laptop screen is flickering intermittently and the device runs very hot even when idle."
+}
+
+###
