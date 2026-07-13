@@ -1,0 +1,57 @@
+@page "/tickets/status"
+@rendermode InteractiveServer
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+
+<EndpointPage Title="Update ticket status"
+              Method="PATCH" Path="/api/tickets/{id}/status"
+              Description="Updates the status of a ticket. Requires agent or admin role.">
+
+    <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Ticket id (Guid)</label>
+            <input class="form-control" @bind="_id" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select class="form-select" @bind="_status">
+                <option value="0">New (0)</option>
+                <option value="1" selected>Open (1)</option>
+                <option value="2">Pending (2)</option>
+                <option value="3">Resolved (3)</option>
+                <option value="4">Closed (4)</option>
+            </select>
+        </div>
+        <div class="col-md-2 text-end">
+            <button class="btn btn-primary w-100" @onclick="Send" disabled="@(_busy || string.IsNullOrWhiteSpace(_id))">
+                @(_busy ? "..." : "Send")
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <ResponseViewer Response="_response" />
+    </div>
+</EndpointPage>
+
+@code {
+    private string? _id;
+    private int _status = 1;
+    private ApiResponse? _response;
+    private bool _busy;
+
+    private async Task Send()
+    {
+        _busy = true;
+        try
+        {
+            var url = $"/api/tickets/{Uri.EscapeDataString(_id ?? string.Empty)}/status";
+            var body = new { status = _status };
+            _response = await Api.SendAsync(HttpMethod.Patch, url, State.CurrentKey, body);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

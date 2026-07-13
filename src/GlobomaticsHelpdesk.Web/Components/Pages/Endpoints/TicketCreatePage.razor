@@ -1,0 +1,77 @@
+@page "/tickets/create"
+@rendermode InteractiveServer
+@inject HelpdeskApiClient Api
+@inject ApiKeyState State
+
+<EndpointPage Title="Create ticket"
+              Method="POST" Path="/api/tickets"
+              Description="Creates a new ticket. Requires agent or admin role.">
+
+    <div class="row g-2">
+        <div class="col-md-8">
+            <label class="form-label">Title</label>
+            <input class="form-control" @bind="_title" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Priority</label>
+            <select class="form-select" @bind="_priority">
+                <option value="0">Low (0)</option>
+                <option value="1" selected>Normal (1)</option>
+                <option value="2">High (2)</option>
+                <option value="3">Urgent (3)</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" rows="4" @bind="_description"></textarea>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Requester id (Guid, optional)</label>
+            <input class="form-control" @bind="_requesterId" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Assigned agent id (Guid, optional)</label>
+            <input class="form-control" @bind="_assignedAgentId" />
+        </div>
+        <div class="col-12 text-end mt-2">
+            <button class="btn btn-primary" @onclick="Send" disabled="@_busy">
+                @(_busy ? "Sending..." : "Send")
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <ResponseViewer Response="_response" />
+    </div>
+</EndpointPage>
+
+@code {
+    private string? _title = "Sample ticket";
+    private string? _description = "Created from the API explorer.";
+    private int _priority = 1;
+    private string? _requesterId;
+    private string? _assignedAgentId;
+    private ApiResponse? _response;
+    private bool _busy;
+
+    private async Task Send()
+    {
+        _busy = true;
+        try
+        {
+            var body = new Dictionary<string, object?>
+            {
+                ["title"] = _title,
+                ["description"] = _description,
+                ["priority"] = _priority,
+                ["requesterId"] = string.IsNullOrWhiteSpace(_requesterId) ? null : _requesterId,
+                ["assignedAgentId"] = string.IsNullOrWhiteSpace(_assignedAgentId) ? null : _assignedAgentId,
+            };
+            _response = await Api.SendAsync(HttpMethod.Post, "/api/tickets", State.CurrentKey, body);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

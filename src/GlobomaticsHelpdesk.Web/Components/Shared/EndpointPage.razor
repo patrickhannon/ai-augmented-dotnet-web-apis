@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+
+<PageTitle>@Title</PageTitle>
+
+<div class="endpoint-page">
+    <div class="endpoint-header mb-3">
+        <h1 class="h3 mb-1">@Title</h1>
+        <p class="text-muted mb-2">@Description</p>
+        <div class="endpoint-route">
+            <span class="badge bg-primary me-2">@Method</span>
+            <code class="endpoint-path">@Path</code>
+        </div>
+    </div>
+
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string Method { get; set; } = "GET";
+    [Parameter] public string Path { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
