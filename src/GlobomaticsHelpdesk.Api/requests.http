@@ -1,0 +1,74 @@
+@host = http://localhost:5119
+@apiKey = gh_agent_key_0001
+
+### Chat (streaming SSE) — Tool-enabled: Ask about a specific ticket
+# The model calls the GetTicketById tool, retrieves real ticket data, and
+# generates a response referencing actual details. The stream pauses while
+# the tool executes, then resumes with grounded content.
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "What's the status of ticket 1001? Who is it assigned to?"
+}
+
+### Chat (streaming SSE) — Tool DISABLED: Same question, no tool access
+# Without the tool, the model either confabulates ticket details or says
+# it doesn't have access to ticket data. Compare with the request above.
+POST {{host}}/api/chat/stream?useTools=false
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "What's the status of ticket 1001? Who is it assigned to?"
+}
+
+### Chat (non-streaming) — Tool-enabled: Ticket lookup
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "Give me the details of ticket 1005, including any comments."
+}
+
+### Chat (non-streaming) — Grounded response with RAG (existing behavior)
+# RAG still works alongside tools. This question is answered from the
+# knowledge base — no tool call needed.
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}
+
+### Chat (streaming SSE) — Grounded streaming response (RAG only)
+# The streaming endpoint also retrieves knowledge base articles before generating.
+# Tokens arrive incrementally with content referencing real Globomatics procedures.
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "My VPN keeps timing out after MFA approval. What should I check first?"
+}
+
+### Chat — Another grounded example (RAG)
+POST {{host}}/api/chat
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "What is the process for requesting a new laptop?"
+}
+
+### Chat (streaming) — Email sync issue (RAG)
+POST {{host}}/api/chat/stream
+Content-Type: application/json
+X-Api-Key: {{apiKey}}
+
+{
+  "prompt": "I can't get my email to sync on my phone. What should I try?"
+}
