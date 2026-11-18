@@ -84,7 +84,7 @@ dotnet user-secrets set "ChatProvider:ApiKey" "<your-foundry-api-key>"
 From the repo root, start everything with Aspire:
 
 ```bash
-aspire run
+aspire run --apphost src/GlobomaticsHelpdesk.AppHost/GlobomaticsHelpdesk.AppHost.csproj
 ```
 
 Aspire builds and launches the **API**, the **Blazor web app**, and the **developer dashboard**. The
