@@ -10,7 +10,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="model-router",
+    model="gpt-4.1-nano",
     input="Explain retrieval-augmented generation in two sentences.",
 )
 
