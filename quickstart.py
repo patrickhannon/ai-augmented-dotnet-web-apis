@@ -1,18 +1,25 @@
 import os
+
 from openai import OpenAI
 
-#print(f"FOUNDRY_RESOURCE_ENDPOINT: {os.environ['FOUNDRY_RESOURCE_ENDPOINT']}")
-#print(f"FOUNDRY_API_KEY: {os.environ["FOUNDRY_API_KEY"]}")
+
+
+endpoint = "https://llm-foundry-pjh-eastus2.services.ai.azure.com/openai/v1"
+deployment_name = "gpt-4.1-mini"
+
+api_key = os.environ["FOUNDRY_API_KEY"]
+
+
+print(f"api_key: {api_key}")
 
 client = OpenAI(
-    base_url=f"{os.environ['FOUNDRY_RESOURCE_ENDPOINT']}/openai/v1/",
-    api_key=os.environ["FOUNDRY_API_KEY"],
+    base_url=endpoint,
+    api_key=api_key
 )
 
 response = client.responses.create(
-    model="gpt-4.1-nano",
-    input="Explain retrieval-augmented generation in two sentences.",
+    model=deployment_name,
+    input="What is the capital of England?",
 )
 
-print(f"Model: {response.model}")
-print(response.output_text)
+print(f"answer: {response.output[0]}")
