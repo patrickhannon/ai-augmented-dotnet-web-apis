@@ -1,12 +1,15 @@
 using FluentValidation;
 using GlobomaticsHelpdesk.Api.Auth;
 using GlobomaticsHelpdesk.Api.Data;
+using GlobomaticsHelpdesk.Api.Domain;
 using GlobomaticsHelpdesk.Api.Endpoints;
 using GlobomaticsHelpdesk.Api.OpenApiTransformers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.VectorData;
 using OpenAI;
+using GlobomaticsHelpdesk.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +55,43 @@ builder.Services.AddOpenApi(options =>
 });
 
 builder.Services.AddProblemDetails();
+
+var embeddingProviderEndpoint =
+    GetRequiredAbsoluteUri(
+        builder.Configuration,
+        "EmbeddingProvider:Endpoint");
+
+var embeddingProviderModel =
+    GetRequiredConfigurationValue(
+        builder.Configuration,
+        "EmbeddingProvider:Model");
+
+builder.Services.AddEmbeddingGenerator(services =>
+{
+    var openAiOptions = new OpenAIClientOptions
+    {
+        Endpoint = embeddingProviderEndpoint
+    };
+
+    return new OpenAI.Embeddings.EmbeddingClient(
+        embeddingProviderModel,
+        new System.ClientModel.ApiKeyCredential(chatProviderApiKey),
+        openAiOptions)
+        .AsIEmbeddingGenerator();
+});
+
+builder.Services.AddSingleton<VectorStore>(sp =>
+    new MemoryVectorStore(
+        sp.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>()));
+
+const string KnowledgeCollectionName = "knowledge-articles";
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<VectorStore>()
+        .GetCollection<Guid, KnowledgeArticleSearchRecord>(
+            KnowledgeCollectionName));
+
+builder.Services.AddHostedService<KnowledgeIngestionService>();
 
 var app = builder.Build();
 

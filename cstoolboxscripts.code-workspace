@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "../../../../git/cstoolboxscripts"
+		},
+		{
+			"path": "../../../../git/cargocontainerhouse"
+		},
+		{
+			"path": "../../../../git/generative_ai"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"debug.internalConsoleOptions": "neverOpen",
+		"csharp-dev-tools.solutionViewer.selectedWorkspaceSolutions": [
+			"DataStructures.Console/DataStructures.Console.sln",
+			"Advanced GitHub Copilot/globomantics-shipping/Globomantics.Shipping.slnx",
+			"Building AI-augmented ASP.NET Core 10 Web APIs/ai-augmented-dotnet-web-apis/GlobomaticsHelpdesk.slnx"
+		]
+	}
+}

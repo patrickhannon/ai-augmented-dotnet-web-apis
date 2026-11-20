@@ -9,9 +9,6 @@ deployment_name = "gpt-4.1-mini"
 
 api_key = os.environ["FOUNDRY_API_KEY"]
 
-
-print(f"api_key: {api_key}")
-
 client = OpenAI(
     base_url=endpoint,
     api_key=api_key
