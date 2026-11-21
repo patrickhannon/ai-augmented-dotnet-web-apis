@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <File Path="src/notes.txt" />
     <Project Path="src/GlobomaticsHelpdesk.Api/GlobomaticsHelpdesk.Api.csproj" />
     <Project Path="src/GlobomaticsHelpdesk.AppHost/GlobomaticsHelpdesk.AppHost.csproj" />
     <Project Path="src/GlobomaticsHelpdesk.ServiceDefaults/GlobomaticsHelpdesk.ServiceDefaults.csproj" />

@@ -1,0 +1,11 @@
+﻿aspire run --apphost .\src\GlobomaticsHelpdesk.AppHost\GlobomaticsHelpdesk.AppHost.csproj
+dotnet restore
+dotnet --info
+dotnet --list-sdks 
+dotnet build "src\GlobomaticsHelpdesk.Api\GlobomaticsHelpdesk.Api.csproj"
+
+
+Current the project is missing some UX components The Mode: dropdown is missing.
+This image is an example of how it should look
+
+https://github.com/patrickhannon/globomatics-chat-demo
